@@ -12,17 +12,15 @@ import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.system.plant.LinearSystemId;
 import edu.wpi.first.wpilibj.simulation.FlywheelSim;
 import frc.robot.Constants;
-import frc.robot.util.MathUtils;
 
 /* Uses Talon SRX to drive a CIM. Expects an absolute encoder connected. */
 public class CIMSteer implements SteerMotor {
   WPI_TalonSRX motor;
   TalonSRXSimCollection sim;
   private Rotation2d angleOffset;
-  private int id;
   private String ntWheelRootPath;
+  
   public CIMSteer(int id, Rotation2d angleOffset, String ntWheelRootPath) {
-    this.id=id;
     this.angleOffset = angleOffset;
     this.ntWheelRootPath = ntWheelRootPath;
     motor = new WPI_TalonSRX(id);
