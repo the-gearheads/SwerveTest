@@ -1,11 +1,14 @@
 package frc.robot.subsystems.drive.motors;
 
 import com.revrobotics.CANSparkMax;
+import com.revrobotics.REVPhysicsSim;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.CANSparkMax.IdleMode;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
+import edu.wpi.first.math.system.plant.DCMotor;
+import frc.robot.Robot;
 import frc.robot.Constants.Drivetrain;
 
 public class NEODrive implements DriveMotor {
@@ -16,6 +19,9 @@ public class NEODrive implements DriveMotor {
   public NEODrive(int id, boolean invertSteer) {
     /* SparkMAX is honestly really nice and simple */
     motor = new CANSparkMax(id, MotorType.kBrushless);
+    if(!Robot.isReal()) {
+      REVPhysicsSim.getInstance().addSparkMax(motor, DCMotor.getNEO(1));
+    }
     encoder = motor.getEncoder();
     /**
      * Very condensed version of this:
@@ -55,7 +61,7 @@ public class NEODrive implements DriveMotor {
   }
 
   public double getVelocity() {
-    return encoder.getVelocity();
+    return Robot.isReal() ? encoder.getVelocity() : encoder.getVelocity() * (Drivetrain.WHEEL_CIRCUMFERENCE / Drivetrain.DRIVE_GEAR_RATIO);
   }
 
 }

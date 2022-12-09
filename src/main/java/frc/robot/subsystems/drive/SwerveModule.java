@@ -2,6 +2,7 @@ package frc.robot.subsystems.drive;
 
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.wpilibj.simulation.FlywheelSim;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.subsystems.drive.motors.CIMSteer;
 import frc.robot.subsystems.drive.motors.NEODrive;
@@ -17,10 +18,13 @@ public class SwerveModule {
   private Rotation2d targetAngle = new Rotation2d();
   private double targetSpeed = 0;
 
+  private FlywheelSim rotSim;
+
   SwerveModule(int driveId, int steerId, Rotation2d angleOffset, String description, boolean invertSteer) {
     folderName = "Wheel " + id + " (" + this.description + ")";
     drive = new NEODrive(driveId, !invertSteer);
     steer = new CIMSteer(steerId, angleOffset, folderName);
+    rotSim = steer.getSim();
     id = driveId;
     this.description = description;
   }
@@ -71,12 +75,28 @@ public class SwerveModule {
     SmartDashboard.putNumber("/Swerve/Wheel " + folderName + "/CurrentAngleModulo360", getRotation2d().getDegrees()%360);
     SmartDashboard.putNumber("/Swerve/Wheel " + folderName + "/TargetSpeed", targetSpeed);
 
+    SmartDashboard.putNumber("/Swerve/Wheel " + folderName + "/DrivePos", drive.getPosition());
+    SmartDashboard.putNumber("/Swerve/Wheel " + folderName + "/DriveVel", drive.getVelocity());
+
     if(SmartDashboard.getBoolean("/Swerve/ScaleWheelSpeed", true)) {
        /* Scale drive wheel speed based on cosine difference */ 
        drive.setSpeed(targetSpeed * Math.cos(targetAngle.getRadians() - getRotation2d().getRadians()));
      } else {
       drive.setSpeed(targetSpeed);
      }
+  }
+
+  private double simRotDistance = 0;
+
+  public void simPeriodic(double dt) {
+    // In theory, sparkmax sim should be handled roughly by the RevPhysicsSim thing, so we need to simulate
+    // the turn encoder ourselves
+    rotSim.setInputVoltage(steer.getAppliedVolts());
+    rotSim.update(dt);
+
+    simRotDistance += rotSim.getAngularVelocityRPM() * 360 * dt;
+    steer.setSimPosition(simRotDistance);
+    steer.setSimVelocity(rotSim.getAngularVelocityRPM() * 360);
   }
 
 

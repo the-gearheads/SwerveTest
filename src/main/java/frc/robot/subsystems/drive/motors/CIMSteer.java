@@ -3,16 +3,21 @@ package frc.robot.subsystems.drive.motors;
 import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.NeutralMode;
 import com.ctre.phoenix.motorcontrol.TalonSRXFeedbackDevice;
+import com.ctre.phoenix.motorcontrol.TalonSRXSimCollection;
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
 
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.math.system.plant.DCMotor;
+import edu.wpi.first.math.system.plant.LinearSystemId;
+import edu.wpi.first.wpilibj.simulation.FlywheelSim;
 import frc.robot.Constants;
 import frc.robot.util.MathUtils;
 
 /* Uses Talon SRX to drive a CIM. Expects an absolute encoder connected. */
 public class CIMSteer implements SteerMotor {
   WPI_TalonSRX motor;
+  TalonSRXSimCollection sim;
   private Rotation2d angleOffset;
   private int id;
   private String ntWheelRootPath;
@@ -21,6 +26,7 @@ public class CIMSteer implements SteerMotor {
     this.angleOffset = angleOffset;
     this.ntWheelRootPath = ntWheelRootPath;
     motor = new WPI_TalonSRX(id);
+    sim = motor.getSimCollection();
     motor.configFactoryDefault();
     motor.configSelectedFeedbackSensor(TalonSRXFeedbackDevice.Analog, 0, 0);
     motor.configFeedbackNotContinuous(false, 0);
@@ -95,4 +101,23 @@ public class CIMSteer implements SteerMotor {
     motor.config_kD(0, kD);
   }
 
+  public void setAngleOffset(Rotation2d angleOffset){
+    motor.setSelectedSensorPosition(motor.getSelectedSensorPosition() + angleToNative(angleOffset.minus(this.angleOffset).getDegrees()));
+  }
+
+  public void setSimPosition(double angle) {
+    sim.setAnalogPosition((int)angleToNative(angle));
+  }
+
+  public void setSimVelocity(double vel) {
+    sim.setAnalogVelocity((int)angleToNative(vel));
+  }
+
+  public double getAppliedVolts() {
+    return motor.getMotorOutputPercent();
+  }
+  
+  public FlywheelSim getSim() {
+    return new FlywheelSim(LinearSystemId.identifyVelocitySystem(1, 1), DCMotor.getBag(1), Constants.Drivetrain.STEER_GEAR_RATIO);
+  }
 }

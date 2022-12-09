@@ -178,6 +178,9 @@ public class SwerveSubsystem extends SubsystemBase {
   @Override
   public void simulationPeriodic() {
     // This method will be called once per scheduler run during simulation
+    for(int i = 0; i < modules.length; i++) {
+      modules[i].simPeriodic(0.02);
+    }
   }
 
 
