@@ -79,12 +79,6 @@ public class SwerveModule {
     SmartDashboard.putNumber("/Swerve/Wheel " + folderName + "/DrivePos", drive.getPosition());
     SmartDashboard.putNumber("/Swerve/Wheel " + folderName + "/DriveVel", drive.getVelocity());
 
-    if(SmartDashboard.getBoolean("/Swerve/ScaleWheelSpeed", true)) {
-       /* Scale drive wheel speed based on cosine difference */ 
-       drive.setSpeed(targetSpeed * Math.cos(targetAngle.getRadians() - getRotation2d().getRadians()));
-     } else {
-      drive.setSpeed(targetSpeed);
-     }
   }
 
   private double simRotDistance = 0;

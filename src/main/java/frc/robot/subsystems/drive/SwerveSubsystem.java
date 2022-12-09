@@ -51,9 +51,6 @@ public class SwerveSubsystem extends SubsystemBase {
     zeroEncoders();
 
     /* Initialize SmartDashboard values */
-    SmartDashboard.putBoolean("/Swerve/ScaleWheelSpeed", false);
-    SmartDashboard.putBoolean("/Swerve/UseOptimizedOptimize", false);
-    SmartDashboard.putNumber("/Swerve/ShiftWindow", 0.3);
     SmartDashboard.putBoolean("/Swerve/PerformOptimizations", true);
     SmartDashboard.putBoolean("/Swerve/CoolWheelStuff", true);
 
@@ -102,20 +99,15 @@ public class SwerveSubsystem extends SubsystemBase {
 
   public void setStatesOptimized(SwerveModuleState[] states) {
     if(SmartDashboard.getBoolean("/Swerve/PerformOptimizations", true)){
-      states = performOptimizations(states);
+      states = optimize(states);
     }
     setStates(states);
   }
 
-  public SwerveModuleState[] performOptimizations(SwerveModuleState[] states) {
-    windowShiftScalingFactor = SmartDashboard.getNumber("/Swerve/ShiftWindow", 0.3);
+  public SwerveModuleState[] optimize(SwerveModuleState[] states) {
     SwerveModuleState[] optimizedStates = new SwerveModuleState[modules.length];
-    if (SmartDashboard.getBoolean("/Swerve/UseOptimizedOptimize", true)) {
-      optimizedStates = optimizedOptimize(getStates(), states);
-    } else {
-      for (int i = 0; i < modules.length; i++) {
-        optimizedStates[i] = SwerveModuleState.optimize(states[i], modules[i].getRotation2d());
-      }
+    for (int i = 0; i < modules.length; i++) {
+      optimizedStates[i] = SwerveModuleState.optimize(states[i], modules[i].getRotation2d());
     }
     return optimizedStates;
   }
@@ -123,7 +115,7 @@ public class SwerveSubsystem extends SubsystemBase {
   public void drive(ChassisSpeeds speeds) {
     var states = kinematics.toSwerveModuleStates(speeds);
     if(SmartDashboard.getBoolean("/Swerve/PerformOptimizations", true)){
-      states = performOptimizations(states);
+      states = optimize(states);
     }
     setStates(states);
   }
@@ -141,40 +133,7 @@ public class SwerveSubsystem extends SubsystemBase {
   public Pose2d getPose(){ 
       return odometry.getPoseMeters();
   }
-  private double windowShiftScalingFactor = 0.3;
 
-  /* Very experimental */
-  public SwerveModuleState[] optimizedOptimize(SwerveModuleState[] currentStates, SwerveModuleState[] targetStates) {
-    /* First, average the direction that all modules will take (normally) */
-    double averageTargetAngle = 0;
-    for (int i = 0; i < currentStates.length; i++) {
-      /* If the change is greater than 90 degrees, we would normally flip */
-      double delta = targetStates[i].angle.minus(currentStates[i].angle).getDegrees();
-      if (Math.abs(delta) > 90) {
-        averageTargetAngle += targetStates[i].angle.rotateBy(Rotation2d.fromDegrees(180)).getDegrees();
-      } else {
-        /* Don't flip */
-        averageTargetAngle += targetStates[i].angle.getDegrees();
-      }
-    }
-    averageTargetAngle /= currentStates.length;
-
-    /* Now let's do it for real */
-    SwerveModuleState[] finalStates = new SwerveModuleState[currentStates.length];
-
-    for (int i = 0; i < currentStates.length; i++) {
-      /* FLIP */
-      double delta = targetStates[i].angle.minus(currentStates[i].angle).getDegrees();
-      if (Math.abs(delta) > 90 + (averageTargetAngle * windowShiftScalingFactor)) {
-        finalStates[i] = new SwerveModuleState(-targetStates[i].speedMetersPerSecond,
-            targetStates[i].angle.rotateBy(Rotation2d.fromDegrees(180)));
-      } else {
-        /* Don't flip */
-        finalStates[i] = new SwerveModuleState(targetStates[i].speedMetersPerSecond, targetStates[i].angle);
-      }
-    }
-    return finalStates;
-  }
   @Override
   public void simulationPeriodic() {
     // This method will be called once per scheduler run during simulation
