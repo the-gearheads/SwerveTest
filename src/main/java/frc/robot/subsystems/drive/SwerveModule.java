@@ -18,13 +18,14 @@ public class SwerveModule {
   private Rotation2d targetAngle = new Rotation2d();
   private double targetSpeed = 0;
 
-  private FlywheelSim rotSim;
+  private FlywheelSim rotSim, driveSim;
 
   SwerveModule(int driveId, int steerId, Rotation2d angleOffset, String description, boolean invertSteer) {
     folderName = "Wheel " + id + " (" + this.description + ")";
     drive = new NEODrive(driveId, !invertSteer);
     steer = new CIMSteer(steerId, angleOffset, folderName);
     rotSim = steer.getSim();
+    driveSim = drive.getSim();
     id = driveId;
     this.description = description;
   }
@@ -87,16 +88,24 @@ public class SwerveModule {
   }
 
   private double simRotDistance = 0;
+  private double simDriveDistance = 0;
 
   public void simPeriodic(double dt) {
     // In theory, sparkmax sim should be handled roughly by the RevPhysicsSim thing, so we need to simulate
     // the turn encoder ourselves
     rotSim.setInputVoltage(steer.getAppliedVolts());
+    driveSim.setInputVoltage(drive.getAppliedVolts());
     rotSim.update(dt);
+    driveSim.update(dt);
 
     simRotDistance += rotSim.getAngularVelocityRPM() * 360 * dt;
     steer.setSimPosition(simRotDistance);
     steer.setSimVelocity(rotSim.getAngularVelocityRPM() * 360);
+
+    simDriveDistance += driveSim.getAngularVelocityRPM() * drive.conversionFactor * dt;
+    drive.simSetPosition(simDriveDistance);
+    drive.simSetVelocity(driveSim.getAngularVelocityRPM() * drive.conversionFactor);
+
   }
 
 
