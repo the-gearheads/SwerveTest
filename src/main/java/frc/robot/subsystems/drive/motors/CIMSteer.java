@@ -19,11 +19,9 @@ public class CIMSteer implements SteerMotor {
   WPI_TalonSRX motor;
   TalonSRXSimCollection sim;
   private Rotation2d angleOffset;
-  private String ntWheelRootPath;
   
-  public CIMSteer(int id, Rotation2d angleOffset, String ntWheelRootPath) {
+  public CIMSteer(int id, Rotation2d angleOffset) {
     this.angleOffset = angleOffset;
-    this.ntWheelRootPath = ntWheelRootPath;
     motor = new WPI_TalonSRX(id);
     sim = motor.getSimCollection();
     motor.configFactoryDefault();
@@ -69,10 +67,6 @@ public class CIMSteer implements SteerMotor {
     double deltaMod360 = delta % 360;
     deltaMod360 = deltaMod360 < 360 ? deltaMod360 + 360 : deltaMod360;
     deltaMod360 = deltaMod360 > 180 ? deltaMod360 - 360 : deltaMod360;
-
-    // Debugging output to SmartDashboard
-    SmartDashboard.putNumber(ntWheelRootPath + "/Delta", delta);
-    SmartDashboard.putNumber(ntWheelRootPath + "/Delta % 360", deltaMod360);
 
     // Calculate the final desired angle by adding the change in angle to the current angle
     double desiredAngle = getAngle() + deltaMod360;

@@ -2,24 +2,24 @@ package frc.robot.subsystems.drive;
 
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.util.sendable.Sendable;
+import edu.wpi.first.util.sendable.SendableBuilder;
 import frc.robot.subsystems.drive.motors.CIMSteer;
 import frc.robot.subsystems.drive.motors.NEODrive;
 
-public class SwerveModule implements SwerveModuleIO {
+public class SwerveModule implements SwerveModuleIO, Sendable  {
 
   protected NEODrive drive;
   protected CIMSteer steer;
   
   public int id;
   public String description;
-  protected String folderName = "";
   private Rotation2d targetAngle = new Rotation2d();
   private double targetVelocity;
 
   public SwerveModule(int driveId, int steerId, Rotation2d angleOffset, String description, boolean invertSteer) {
-    folderName = "Wheel " + id + " (" + this.description + ")";
     drive = new NEODrive(driveId, !invertSteer);
-    steer = new CIMSteer(steerId, angleOffset, folderName);
+    steer = new CIMSteer(steerId, angleOffset);
     id = driveId;
     this.description = description;
   }
@@ -57,5 +57,22 @@ public class SwerveModule implements SwerveModuleIO {
     inputs.steerVelocity = steer.getVelocity();
     inputs.targetAngle = this.targetAngle.getDegrees();
     inputs.targetVelocity = this.targetVelocity;
+  }
+
+  public String getDescription() {
+    return this.description;
+  }
+
+  @Override
+  public void initSendable(SendableBuilder builder) {
+    builder.addStringProperty("description", ()->{return this.description;}, null);
+    builder.addDoubleProperty("currentAngle", ()->{return steer.getAngle();}, null);
+    builder.addDoubleProperty("driveAppliedVolts", ()->{return drive.getAppliedVolts();}, null);
+    builder.addDoubleProperty("drivePosition", ()->{return drive.getPosition();}, null);
+    builder.addDoubleProperty("driveVelocity", ()->{return drive.getVelocity();}, null);
+    builder.addDoubleProperty("steerAppliedVolts", ()->{return steer.getAppliedVolts();}, null);
+    builder.addDoubleProperty("steerVelocity", ()->{return steer.getVelocity();}, null);
+    builder.addDoubleProperty("targetAngle", ()->{return targetAngle.getDegrees();}, null);
+    builder.addDoubleProperty("targetVelocity", ()->{return targetVelocity;}, null);
   }
 }

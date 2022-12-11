@@ -68,11 +68,11 @@
       "open": true
     },
     "SmartDashboard": {
-      "Field": {
-        "open": true
-      },
       "Swerve": {
         "Wheel 0": {
+          "open": true
+        },
+        "Wheel 3 (RR)": {
           "open": true
         },
         "Wheel Wheel 15 (FR)": {
@@ -84,6 +84,9 @@
         "Wheel Wheel 6 (RR)": {
           "open": true
         },
+        "open": true
+      },
+      "Wheel 0 (null)": {
         "open": true
       },
       "open": true

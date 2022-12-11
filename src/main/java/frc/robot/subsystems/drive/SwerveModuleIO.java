@@ -21,5 +21,5 @@ public interface SwerveModuleIO {
   public default void zeroEncoders() {}
   public default void setPIDConstants(double kF, double kP, double kI, double kD) {}
   public default void updateInputs(SwerveModuleInputs inputs) {}
-
+  public default String getDescription() {return "";}
 }

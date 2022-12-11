@@ -16,6 +16,7 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.util.sendable.Sendable;
 import edu.wpi.first.wpilibj.SPI;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -52,6 +53,11 @@ public class SwerveSubsystem extends SubsystemBase {
     SmartDashboard.putData("xPid", Drivetrain.Auton.X_PID);
     SmartDashboard.putData("yPid", Drivetrain.Auton.Y_PID);
     SmartDashboard.putData("rotPid", Drivetrain.Auton.ROT_PID);
+
+    for(int i = 0; i < modules.length; i++) { 
+      String name = "/Swerve/Wheel " + i + " (" + modules[i].getDescription() + ")";
+      SmartDashboard.putData(name, (Sendable)modules[i]);
+    }
 
   }
 
