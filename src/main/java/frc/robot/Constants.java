@@ -21,6 +21,22 @@ import edu.wpi.first.math.geometry.Translation2d;
  * constants are needed, to reduce verbosity.
  */
 public final class Constants {
+  public static boolean simReplayMode = false;
+
+  public static enum RobotMode {
+    SIM, SIM_REPLAY, REAL
+  }
+
+  public static RobotMode getMode() {
+    if(Robot.isReal()) {
+      return RobotMode.REAL;
+    }
+    if(simReplayMode) {
+      return RobotMode.SIM_REPLAY;
+    } else {
+      return RobotMode.SIM;
+    }
+  }
   public static final class Drivetrain {
     public static int FL_DRIVE_ID = 27;
     public static int FL_STEER_ID = 34;

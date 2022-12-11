@@ -23,6 +23,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.subsystems.drive.SwerveModuleIO.SwerveModuleInputs;
 import frc.robot.Constants.Drivetrain;
 import frc.robot.util.Gyroscope;
 
@@ -30,18 +31,15 @@ public class SwerveSubsystem extends SubsystemBase {
 
   SwerveDriveKinematics kinematics = new SwerveDriveKinematics(Drivetrain.FL_POS, Drivetrain.FR_POS, Drivetrain.RL_POS,
       Drivetrain.RR_POS);
-  public SwerveModule[] modules = {
-      new SwerveModule(Drivetrain.FL_DRIVE_ID, Drivetrain.FL_STEER_ID, Drivetrain.FL_OFFSET, "FL", true),
-      new SwerveModule(Drivetrain.FR_DRIVE_ID, Drivetrain.FR_STEER_ID, Drivetrain.FR_OFFSET, "FR", true),
-      new SwerveModule(Drivetrain.RL_DRIVE_ID, Drivetrain.RL_STEER_ID, Drivetrain.RL_OFFSET, "RL", false),
-      new SwerveModule(Drivetrain.RR_DRIVE_ID, Drivetrain.RR_STEER_ID, Drivetrain.RR_OFFSET, "RR", false)
-  };
+  public SwerveModuleIO[] modules;
+  public SwerveModuleInputs[] lastInputs;
   Gyroscope gyro = new Gyroscope(SPI.Port.kMXP, true);
   SwerveDriveOdometry odometry = new SwerveDriveOdometry(kinematics, new Rotation2d(0));
   Field2d field = new Field2d();
 
   /** Creates a new SwerveSubsystem. */
-  public SwerveSubsystem() {
+  public SwerveSubsystem(SwerveModuleIO... modules) {
+    this.modules = modules;
     gyro.reset();
     zeroEncoders();
 
@@ -57,6 +55,9 @@ public class SwerveSubsystem extends SubsystemBase {
 
   }
 
+  /**
+   * Zeros all encoders to be at the default pose (0x, 0y, 0deg)
+   */
   public void zeroEncoders() {
     gyro.zeroYaw();
     for (int i = 0; i < modules.length; i++) {
@@ -67,31 +68,44 @@ public class SwerveSubsystem extends SubsystemBase {
 
   @Override
   public void periodic() {
-    // This method will be called once per scheduler run
-    odometry.update(gyro.getRotation2d(), getStates());
-
+    /* Get inputs for each swerve module */
+    SwerveModuleInputs[] inputs = new SwerveModuleInputs[modules.length];
     for (int i = 0; i < modules.length; i++) {
-      modules[i].periodic();
+      modules[i].updateInputs(inputs[i]);
     }
-    
+    lastInputs = inputs;
+
+    odometry.update(gyro.getRotation2d(), getStatesFromInputs(inputs));
     field.setRobotPose(getPose());
   }
 
-  public SwerveModuleState[] getStates() {
-    SwerveModuleState states[] = new SwerveModuleState[modules.length];
-    for (int i = 0; i < modules.length; i++) {
-      states[i] = modules[i].getState();
+  /**
+   * Return SwerveModuleStates for all SwerveModuleInputs
+   * @param inputs SwerveModuleInputs containing velocities and angles
+   * @return SwerveModuleStates containing velocities and angles
+   */
+  public SwerveModuleState[] getStatesFromInputs(SwerveModuleInputs[] inputs) {
+    SwerveModuleState states[] = new SwerveModuleState[inputs.length];
+    for (int i = 0; i < inputs.length; i++) {
+      states[i] = new SwerveModuleState(inputs[i].driveVelocity, Rotation2d.fromDegrees(inputs[i].currentAngle));
     }
     return states;
   }
 
+  /**
+   * Sets all swerve modules to have the specified velocities and angles
+   * @param states
+   */
   public void setStates(SwerveModuleState[] states) {
-    for (int i = 0; i < modules.length; i++) {
+    for (int i = 0; i < states.length; i++) {
       modules[i].setState(states[i]);
     }
   }
 
-
+  /**
+   * Like setStates, but will optimize the states before setting them if optimizations are enabled.
+   * @param states States to set
+   */
   public void setStatesOptimized(SwerveModuleState[] states) {
     if(SmartDashboard.getBoolean("/Swerve/PerformOptimizations", true)){
       states = optimize(states);
@@ -99,14 +113,24 @@ public class SwerveSubsystem extends SubsystemBase {
     setStates(states);
   }
 
+  /**
+   * Optimizes swerve module states to determine whether it's worth it to flip the wheel or go the full way,
+   * based on current module positions. 
+   * @param states States you wish to optimize
+   * @return
+   */
   public SwerveModuleState[] optimize(SwerveModuleState[] states) {
     SwerveModuleState[] optimizedStates = new SwerveModuleState[modules.length];
     for (int i = 0; i < modules.length; i++) {
-      optimizedStates[i] = SwerveModuleState.optimize(states[i], modules[i].getRotation2d());
+      optimizedStates[i] = SwerveModuleState.optimize(states[i], Rotation2d.fromDegrees(lastInputs[i].currentAngle));
     }
     return optimizedStates;
   }
 
+  /**
+   * Drives the robot at the specified speeds
+   * @param speeds Speeds to go
+   */
   public void drive(ChassisSpeeds speeds) {
     var states = kinematics.toSwerveModuleStates(speeds);
     if(SmartDashboard.getBoolean("/Swerve/PerformOptimizations", true)){
@@ -115,35 +139,52 @@ public class SwerveSubsystem extends SubsystemBase {
     setStates(states);
   }
 
+  /**
+   * Drives, but field relative. +X is away from the driver station. 
+   * @param speeds Speeds to go in each axis, field relative
+   */
   public void driveFieldRelative(ChassisSpeeds speeds) {
     var robotOrientedSpeeds = ChassisSpeeds.fromFieldRelativeSpeeds(speeds.vxMetersPerSecond, speeds.vyMetersPerSecond,
         speeds.omegaRadiansPerSecond, getPose().getRotation());
     drive(robotOrientedSpeeds);
   }
 
+  /**
+   * Resets the odometry pose to the given position
+   * @param pose Position robot is at
+   */
   public void setPose(Pose2d pose) {
     odometry.resetPosition(pose, gyro.getRotation2d());
   }
 
+  /**
+   * Gets current odometry pose
+   * @return Current robot pose, as reported by odometry
+   */
   public Pose2d getPose(){ 
       return odometry.getPoseMeters();
   }
 
-  @Override
-  public void simulationPeriodic() {
-    // This method will be called once per scheduler run during simulation
-    for(int i = 0; i < modules.length; i++) {
-      modules[i].simPeriodic(0.02);
-    }
-  }
-
-
+  /**
+   * Sets steer pid constants for all modules
+   * @param kF F(eedforward) value
+   * @param kP P(roportional) PID value
+   * @param kI I(ntegral) PID value
+   * @param kD D(erivitive) PID value
+   */
   public void setPIDConstants(double kF, double kP, double kI, double kD){
     for (int i = 0; i < modules.length; i++) {
       modules[i].setPIDConstants(kF, kP, kI, kD);
     }
   }
 
+  /**
+   * Generates a command that will follow a given trajectory
+   * @param traj The trajectory to follow
+   * @param isFirstPath Reset odometry to starting position if first path
+   * @param stopWhenDone Append a command to stop the robot if done
+   * @return
+   */
   public Command followTrajectoryCommand(PathPlannerTrajectory traj, boolean isFirstPath, boolean stopWhenDone) {
     return new SequentialCommandGroup(
         new InstantCommand(() -> {
@@ -169,6 +210,12 @@ public class SwerveSubsystem extends SubsystemBase {
         }));
   }
 
+  /**
+   * Follows an ArrayList of trajectories
+   * @param trajectories List of trajectories to follow
+   * @param stopWhenDone [unimplemented] stop when done following all trajectories
+   * @return
+   */
   public Command followTrajectoriesCommand(ArrayList<PathPlannerTrajectory> trajectories, boolean stopWhenDone) {
     Command fullCommand = new InstantCommand();
     for (PathPlannerTrajectory trajectory: trajectories) {

@@ -53,10 +53,14 @@ public class CIMSteer implements SteerMotor {
   }
 
   public void setAngle(double angle) {
+    if(SmartDashboard.getBoolean("/Swerve/CoolWheelStuff", true)) {
+      angle = angleMod360(angle);
+    }
+
     motor.set(ControlMode.Position, angleToNative(angle+angleOffset.getDegrees()));
   }
 
-  public void setAngleMod360(double naiveDesiredAngle) {
+  public double angleMod360(double naiveDesiredAngle) {
     // Calculate the change in angle from the current angle to the desired angle
     double delta = naiveDesiredAngle - getAngle();
 
@@ -72,8 +76,7 @@ public class CIMSteer implements SteerMotor {
     // Calculate the final desired angle by adding the change in angle to the current angle
     double desiredAngle = getAngle() + deltaMod360;
 
-    // Set the angle to the desired angle
-    setAngle(desiredAngle);
+    return desiredAngle;
   }
 
   public void setBrakeMode(boolean isBraking) {
