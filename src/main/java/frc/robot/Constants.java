@@ -11,6 +11,7 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.system.plant.DCMotor;
 
 /**
  * The Constants class provides a convenient place for teams to hold robot-wide numerical or boolean
@@ -84,6 +85,20 @@ public final class Constants {
       public static PIDController Y_PID = new PIDController(0, 0, 0);
       public static PIDController ROT_PID = new PIDController(0, 0, 0);
       public static PathConstraints CONSTRAINTS = new PathConstraints(1, 1.5);
+    }
+
+    public static final class Sim {
+      public static final class CIMSteer {
+        public static double kV = 1;
+        public static double kA = 1;
+        public static DCMotor motor = DCMotor.getCIM(1);
+      }
+
+      public static final class NEODrive {
+        public static double kV = 1;
+        public static double kA = 1;
+        public static DCMotor motor = DCMotor.getNEO(1);
+      }
     }
   }
 

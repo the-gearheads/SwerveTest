@@ -71,6 +71,7 @@ public class SwerveSubsystem extends SubsystemBase {
     /* Get inputs for each swerve module */
     SwerveModuleInputs[] inputs = new SwerveModuleInputs[modules.length];
     for (int i = 0; i < modules.length; i++) {
+      inputs[i] = new SwerveModuleInputs();
       modules[i].updateInputs(inputs[i]);
     }
     lastInputs = inputs;

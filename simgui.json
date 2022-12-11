@@ -41,6 +41,8 @@
       "/LiveWindow/Ungrouped/Talon SRX [8]": "Motor Controller",
       "/LiveWindow/Ungrouped/navX-Sensor[4]": "Gyro",
       "/SmartDashboard//Field": "Field2d",
+      "/SmartDashboard/Field": "Field2d",
+      "/SmartDashboard/PPSwerveControllerCommand_field": "Field2d",
       "/SmartDashboard/rotPid": "PIDController",
       "/SmartDashboard/xPid": "PIDController",
       "/SmartDashboard/yPid": "PIDController"
@@ -50,10 +52,21 @@
         "window": {
           "visible": true
         }
+      },
+      "/SmartDashboard/Field": {
+        "window": {
+          "visible": true
+        }
       }
     }
   },
   "NetworkTables": {
+    "FMSInfo": {
+      "open": true
+    },
+    "LiveWindow": {
+      "open": true
+    },
     "SmartDashboard": {
       "Field": {
         "open": true

@@ -84,7 +84,7 @@ public class NEODrive implements DriveMotor {
   }
 
   public FlywheelSim getSim() {
-    return new FlywheelSim(LinearSystemId.identifyVelocitySystem(1, 1), DCMotor.getNEO(1), Constants.Drivetrain.DRIVE_GEAR_RATIO);
+    return new FlywheelSim(LinearSystemId.identifyVelocitySystem(Drivetrain.Sim.NEODrive.kV, Drivetrain.Sim.NEODrive.kA), Drivetrain.Sim.NEODrive.motor, Constants.Drivetrain.DRIVE_GEAR_RATIO);
   }
 
 }

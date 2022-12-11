@@ -12,6 +12,7 @@ import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.system.plant.LinearSystemId;
 import edu.wpi.first.wpilibj.simulation.FlywheelSim;
 import frc.robot.Constants;
+import frc.robot.Constants.Drivetrain;
 
 /* Uses Talon SRX to drive a CIM. Expects an absolute encoder connected. */
 public class CIMSteer implements SteerMotor {
@@ -119,6 +120,6 @@ public class CIMSteer implements SteerMotor {
   }
   
   public FlywheelSim getSim() {
-    return new FlywheelSim(LinearSystemId.identifyVelocitySystem(1, 1), DCMotor.getBag(1), Constants.Drivetrain.STEER_GEAR_RATIO);
+    return new FlywheelSim(LinearSystemId.identifyVelocitySystem(Drivetrain.Sim.CIMSteer.kV, Drivetrain.Sim.CIMSteer.kA), Drivetrain.Sim.CIMSteer.motor, Constants.Drivetrain.STEER_GEAR_RATIO);
   }
 }
