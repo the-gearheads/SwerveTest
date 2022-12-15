@@ -59,10 +59,10 @@ public class Constants extends AnnotatedClass {
 
     public static double STEER_F = 0.0;
     @MultiRobotDouble(real=12.5, sim=3.2)
-    public static double STEER_P = 0.0;
+    public static double STEER_P;
     public static double STEER_I = 0.0;
     @MultiRobotDouble(real=0.0, sim=1.0)
-    public static double STEER_D = 0.0;
+    public static double STEER_D;
 
     public static double DRIVE_KS = 0.18;
     public static double DRIVE_KV = 2.7;
