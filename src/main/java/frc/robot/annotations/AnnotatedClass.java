@@ -1,4 +1,4 @@
-package frc.robot;
+package frc.robot.annotations;
 
 import java.lang.reflect.Field;
 import java.util.HashMap;
@@ -6,8 +6,7 @@ import java.util.Map;
 
 import edu.wpi.first.util.sendable.Sendable;
 import edu.wpi.first.util.sendable.SendableBuilder;
-import frc.robot.annotations.MultiRobotDouble;
-import frc.robot.annotations.NTPublish;
+import frc.robot.Constants;
 
 public class AnnotatedClass implements Sendable {
   public static <T> void processFields(Class<T> start) {
