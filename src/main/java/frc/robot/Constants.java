@@ -4,6 +4,8 @@
 
 package frc.robot;
 
+import java.lang.reflect.Field;
+
 import com.pathplanner.lib.PathConstraints;
 
 import edu.wpi.first.math.controller.PIDController;
@@ -13,6 +15,8 @@ import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.system.plant.DCMotor;
 
+import frc.robot.annotations.*;
+
 /**
  * The Constants class provides a convenient place for teams to hold robot-wide numerical or boolean
  * constants. This class should not be used for any other purpose. All constants should be declared
@@ -21,7 +25,7 @@ import edu.wpi.first.math.system.plant.DCMotor;
  * <p>It is advised to statically import this class (or one of its inner classes) wherever the
  * constants are needed, to reduce verbosity.
  */
-public final class Constants {
+public class Constants {
   public static boolean simReplayMode = false;
 
   public static enum RobotMode {
@@ -38,7 +42,7 @@ public final class Constants {
       return RobotMode.SIM;
     }
   }
-  public static final class Drivetrain {
+  public static class Drivetrain {
     public static int FL_DRIVE_ID = 27;
     public static int FL_STEER_ID = 34;
     public static int FR_DRIVE_ID = 15;
@@ -85,33 +89,78 @@ public final class Constants {
     public static double MAX_LIN_VEL = 2;//set to 2
     public static double MAX_ROT_VEL = 1;
 
-    public static final class Auton {
+    public static class Auton {
       public static PIDController X_PID = new PIDController(0, 0, 0);
       public static PIDController Y_PID = new PIDController(0, 0, 0);
       public static PIDController ROT_PID = new PIDController(0, 0, 0);
       public static PathConstraints CONSTRAINTS = new PathConstraints(1, 1.5);
     }
 
-    public static final class Sim {
-      public static final class CIMSteer {
+    public static class Sim {
+      public static class CIMSteer {
         public static double kV = 1;
         public static double kA = 1;
         public static DCMotor motor = DCMotor.getCIM(1);
       }
 
-      public static final class NEODrive {
+      public static class NEODrive {
         public static double kV = 1;
         public static double kA = 1;
         public static DCMotor motor = DCMotor.getNEO(1);
       }
     }
   }
-  public static final class Vision{
+  public static class Vision{
     public static double SERVO_SPEED=180/0.6;//in deg/sec
     public static double SERVO_OFFSET=0;
   }
-  public static final class Controllers {
+  public static class Controllers {
     public static double JOYSTICK_DEADBAND = 0.05;
+  }
+
+
+  public static <T> void processFields(Class<T> start) {
+    Field[] fields = start.getFields();
+
+    for(var field : fields) {
+      if(double.class.isAssignableFrom(field.getType())) {
+        processDouble(field);
+      }
+    }
+  }
+
+  public static <T> void processClass(Class<T> start, int depth) {
+
+    /* Bail out if we're recursing a bit much, in case something breaks */
+    if(depth > 10) {return;}
+
+    /* Start with our class */
+    processFields(start);
+
+    var classes = start.getDeclaredClasses();
+    for(Class<?> c : classes) {
+      processClass(c, depth+1);
+    }
+  }
+
+  private static void processDouble(Field field) {
+    System.out.println("Processing " + field.getName());
+    var mrd = field.getAnnotation(MultiRobotDouble.class);
+    try {
+      if (mrd != null) {
+        System.out.println("found annotation " + mrd.sim() + " " + mrd.real());
+        switch (getMode()) {
+          case SIM:
+          case SIM_REPLAY:
+            field.setDouble(null, mrd.sim());
+            break;
+          case REAL:
+            field.setDouble(null, mrd.real());
+        }
+      }
+    } catch (IllegalAccessException e) {
+      e.printStackTrace();
+    }
   }
 
 }
