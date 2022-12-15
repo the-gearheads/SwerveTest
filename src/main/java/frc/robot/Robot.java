@@ -32,7 +32,7 @@ public class Robot extends TimedRobot {
   public void robotInit() {
     PathPlannerServer.startServer(5811);
     LiveWindow.disableAllTelemetry();
-    Constants.processClass(Constants.class, 0);
+    Constants.processAnnotations(Constants.class);
     /* Somewhat cursed but it'll work */
     SmartDashboard.putData("Constants", new Constants());
     // Instantiate our RobotContainer.  This will perform all our button bindings, and put our

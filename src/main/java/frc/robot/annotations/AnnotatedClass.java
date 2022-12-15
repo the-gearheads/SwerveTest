@@ -8,8 +8,28 @@ import edu.wpi.first.util.sendable.Sendable;
 import edu.wpi.first.util.sendable.SendableBuilder;
 import frc.robot.Constants;
 
+
 public class AnnotatedClass implements Sendable {
-  public static <T> void processFields(Class<T> start) {
+
+  public static <T> void processAnnotations(Class<T> start) {
+    processClass(start, 0);
+  }
+
+  private static <T> void processClass(Class<T> start, int depth) {
+
+    /* Bail out if we're recursing a bit much, in case something breaks */
+    if(depth > 10) {return;}
+
+    /* Start with our class */
+    processFields(start);
+
+    var classes = start.getDeclaredClasses();
+    for(Class<?> c : classes) {
+      processClass(c, depth+1);
+    }
+  }
+
+  private static <T> void processFields(Class<T> start) {
     Field[] fields = start.getFields();
 
     for(var field : fields) {
@@ -25,20 +45,6 @@ public class AnnotatedClass implements Sendable {
         path += field.getName();
         fieldsToTrack.put(path, field);
       }
-    }
-  }
-
-  public static <T> void processClass(Class<T> start, int depth) {
-
-    /* Bail out if we're recursing a bit much, in case something breaks */
-    if(depth > 10) {return;}
-
-    /* Start with our class */
-    processFields(start);
-
-    var classes = start.getDeclaredClasses();
-    for(Class<?> c : classes) {
-      processClass(c, depth+1);
     }
   }
 
