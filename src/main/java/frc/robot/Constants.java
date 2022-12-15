@@ -4,8 +4,6 @@
 
 package frc.robot;
 
-import java.lang.reflect.Field;
-
 import com.pathplanner.lib.PathConstraints;
 
 import edu.wpi.first.math.controller.PIDController;
@@ -14,7 +12,6 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.system.plant.DCMotor;
-
 import frc.robot.annotations.*;
 
 /**
@@ -25,7 +22,7 @@ import frc.robot.annotations.*;
  * <p>It is advised to statically import this class (or one of its inner classes) wherever the
  * constants are needed, to reduce verbosity.
  */
-public class Constants {
+public class Constants extends AnnotatedClass {
   public static boolean simReplayMode = false;
 
   public static enum RobotMode {
@@ -88,7 +85,9 @@ public class Constants {
     public static Rotation2d RL_OFFSET = Rotation2d.fromDegrees((472.85)%360);
     public static Rotation2d RR_OFFSET = Rotation2d.fromDegrees((684.5+554+367)%360);
 
+    @NTPublish
     public static double MAX_LIN_VEL = 2;//set to 2
+    @NTPublish
     public static double MAX_ROT_VEL = 1;
 
     public static class Auton {
@@ -119,50 +118,4 @@ public class Constants {
   public static class Controllers {
     public static double JOYSTICK_DEADBAND = 0.05;
   }
-
-
-  public static <T> void processFields(Class<T> start) {
-    Field[] fields = start.getFields();
-
-    for(var field : fields) {
-      if(double.class.isAssignableFrom(field.getType())) {
-        processDouble(field);
-      }
-    }
-  }
-
-  public static <T> void processClass(Class<T> start, int depth) {
-
-    /* Bail out if we're recursing a bit much, in case something breaks */
-    if(depth > 10) {return;}
-
-    /* Start with our class */
-    processFields(start);
-
-    var classes = start.getDeclaredClasses();
-    for(Class<?> c : classes) {
-      processClass(c, depth+1);
-    }
-  }
-
-  private static void processDouble(Field field) {
-    System.out.println("Processing " + field.getName());
-    var mrd = field.getAnnotation(MultiRobotDouble.class);
-    try {
-      if (mrd != null) {
-        System.out.println("found annotation " + mrd.sim() + " " + mrd.real());
-        switch (getMode()) {
-          case SIM:
-          case SIM_REPLAY:
-            field.setDouble(null, mrd.sim());
-            break;
-          case REAL:
-            field.setDouble(null, mrd.real());
-        }
-      }
-    } catch (IllegalAccessException e) {
-      e.printStackTrace();
-    }
-  }
-
 }
