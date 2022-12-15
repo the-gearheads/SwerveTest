@@ -11,6 +11,10 @@ import frc.robot.Constants;
 
 public class AnnotatedClass implements Sendable {
 
+  /**
+   * Process annotations the class, call this before any annotated variables are referenced
+   * @param start Reference to the current class type, e.g. AnnotatedClass.class
+   */
   public static <T> void processAnnotations(Class<T> start) {
     processClass(start, 0);
   }
