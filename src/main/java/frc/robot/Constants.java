@@ -4,12 +4,18 @@
 
 package frc.robot;
 
+import java.util.ArrayList;
+
 import com.pathplanner.lib.PathConstraints;
 
+import edu.wpi.first.apriltag.AprilTag;
+import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
+import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.system.plant.DCMotor;
 import frc.robot.annotations.*;
@@ -23,7 +29,11 @@ import frc.robot.annotations.*;
  * constants are needed, to reduce verbosity.
  */
 public class Constants extends AnnotatedClass {
-  public static boolean simReplayMode = false;
+  public static final class FieldConstants{
+    public static double width=50;
+    public static double length=25;
+  }
+public static boolean simReplayMode = false;
 
   public static enum RobotMode {
     SIM, SIM_REPLAY, REAL
@@ -117,6 +127,11 @@ public class Constants extends AnnotatedClass {
   public static class Vision{
     public static double SERVO_SPEED=180/0.6;//in deg/sec
     public static double SERVO_OFFSET=0;
+    public static Transform3d robotToCam;
+    final static AprilTag tag18 = new AprilTag(18,new Pose3d(new Pose2d(FieldConstants.length,FieldConstants.width / 2.0,Rotation2d.fromDegrees(180))));
+    final static AprilTag tag01 = new AprilTag(01,new Pose3d(new Pose2d(0.0, FieldConstants.width / 2.0, Rotation2d.fromDegrees(0.0))));
+    public static ArrayList<AprilTag> atList = new ArrayList<AprilTag>(){{add(tag18);add(tag01);}};
+    public static AprilTagFieldLayout atfl = new AprilTagFieldLayout(atList, FieldConstants.length, FieldConstants.width);
   }
   public static class Controllers {
     public static double JOYSTICK_DEADBAND = 0.05;

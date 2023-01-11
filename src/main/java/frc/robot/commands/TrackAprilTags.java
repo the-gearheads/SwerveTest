@@ -4,11 +4,16 @@
 
 package frc.robot.commands;
 
+import edu.wpi.first.math.Drake;
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.Pair;
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import frc.robot.Constants;
+import frc.robot.Constants.Drivetrain;
 import frc.robot.subsystems.drive.SwerveSubsystem;
+import frc.robot.subsystems.drive.motors.DriveMotor;
 import frc.robot.subsystems.vision.Vision;
 
 public class TrackAprilTags extends CommandBase {
@@ -35,11 +40,13 @@ public class TrackAprilTags extends CommandBase {
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
-    boolean isAprilTagInView = false;//replace with method from vision that checks if there are apriltags in view
+    boolean isAprilTagInView = vision.isConnected()&&vision.hasTargets();//replace with method from vision that checks if there are apriltags in view
     if(isAprilTagInView){
       //follow april tag
-      double aprilTagAngleInFrame=0;//replace with method from vision that returns the angle of the tag within view of the camera
+      Pair<Pose2d, Double> results = vision.getEstimatedGlobalPose(swerveSubsystem.getPose());
+      double aprilTagAngleInFrame=results.getFirst().getRotation().getDegrees();//replace with method from vision that returns the angle of the tag within view of the camera
       vision.setServoAngle((vision.getServoAngle()-aprilTagAngleInFrame)%180);
+
     }else{
       wander();
     }
