@@ -20,13 +20,11 @@ import frc.robot.subsystems.vision.Vision;
 public class TrackAprilTags extends CommandBase {
   /** Creates a new TrackAprilTags. */
   private Vision vision;
-  private Timer timer;
   @SuppressWarnings("all")
   private SwerveSubsystem swerveSubsystem;
   public TrackAprilTags(Vision vision, SwerveSubsystem swerveSubsystem) {
     this.vision=vision;
     this.swerveSubsystem=swerveSubsystem;
-    timer=new Timer();
     addRequirements(vision);
     // Use addRequirements() here to declare subsystem dependencies.
   }
@@ -34,8 +32,6 @@ public class TrackAprilTags extends CommandBase {
   // Called when the command is initially scheduled.
   @Override
   public void initialize() {
-    timer.reset();
-    timer.start();
   }
 
   // Called every time the scheduler runs while the command is scheduled.
@@ -53,12 +49,10 @@ public class TrackAprilTags extends CommandBase {
     }
   }
   public void wander(){
-    if(timer.get()>180/Constants.Vision.SERVO_SPEED){
-      vision.setServoAngle(MathUtil.applyDeadband(vision.getServoAngle()-180,1)==0?0:180);
-      // vision.setServoAngle(0);
-      SmartDashboard.putNumber("servoAngle", 0);
-      timer.reset();
-      timer.start();
+    if(Math.abs(vision.getLastCommandedServoAngle()-vision.getServoAngle()) < 1e-1){
+      double nextCommmandedAngle=MathUtil.applyDeadband(vision.getLastCommandedServoAngle(),1e-1)==180?0:180;
+      vision.setServoAngle(nextCommmandedAngle);
+      SmartDashboard.putNumber("servoAngle", vision.getServoAngle());
     }
   }
   // Called once the command ends or is interrupted.
