@@ -101,6 +101,7 @@ public class Vision extends SubsystemBase {
     else
       servoAngle+=deltaAngle;
     
-    SmartDashboard.putNumber("Servo/CalculatedAngle", servoAngle);
+    SmartDashboard.putNumber("Vision/lastCommandedServoAngle", getLastCommandedServoAngle());
+    SmartDashboard.putNumber("Vision/servoAngle", servoAngle);
   }
 }

@@ -30,6 +30,7 @@ import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.Drivetrain;
+import frc.robot.util.AdditionalMathUtils;
 import frc.robot.util.Gyroscope;
 
 public class SwerveSubsystem extends SubsystemBase {
@@ -97,6 +98,7 @@ public class SwerveSubsystem extends SubsystemBase {
     updateInputs();
     odometry.update(gyro.getRotation2d(), getPositionsFromInputs(lastInputs));
     field.setRobotPose(getPose());
+    SmartDashboard.putString("Vision/Robot Pos", AdditionalMathUtils.pos2dToString(getPose(), 2));
   }
 
   /**
@@ -186,11 +188,9 @@ public class SwerveSubsystem extends SubsystemBase {
   }
   public void updateVisionMeasurement(Pose2d visionRobotPos, double timestamp){
     odometry.addVisionMeasurement(visionRobotPos, timestamp);
-    SmartDashboard.putString("Vision Estimated Pos", round(visionRobotPos.getX(),2)+"; "+round(visionRobotPos.getY(), 2) + "; " + round(visionRobotPos.getRotation().getDegrees(),2));
+    SmartDashboard.putString("Vision/Vision Estimated Pos", AdditionalMathUtils.pos2dToString(visionRobotPos, 2));
   }
-  public double round(double num, int places){
-    return ((int)(num*Math.pow(10, places))) / Math.pow(10, places);
-  }
+
 
   public double getContinuousGyroAngle(){
     return gyro.getContinuousAngle();
