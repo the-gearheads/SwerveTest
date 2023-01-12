@@ -52,8 +52,8 @@ public class TrackAprilTags extends CommandBase {
     if(Math.abs(vision.getLastCommandedServoAngle()-vision.getServoAngle()) < 1e-1){
       double nextCommmandedAngle=MathUtil.applyDeadband(vision.getLastCommandedServoAngle(),1e-1)==180?0:180;
       vision.setServoAngle(nextCommmandedAngle);
-      SmartDashboard.putNumber("servoAngle", vision.getServoAngle());
     }
+    SmartDashboard.putNumber("servoAngle", vision.getServoAngle());
   }
   // Called once the command ends or is interrupted.
   @Override
