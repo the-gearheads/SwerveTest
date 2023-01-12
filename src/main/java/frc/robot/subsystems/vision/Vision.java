@@ -30,22 +30,30 @@ import frc.robot.Constants.FieldConstants;
 import frc.robot.subsystems.drive.SwerveSubsystem;
 
 public class Vision extends SubsystemBase {
-  private final Servo servo;
   private PhotonCamera targetCam;
   private RobotPoseEstimator robotPoseEstimator;
+
+  private final Servo servo;
   private double servoAngle;
+  private double lastTime;
+
   public Vision() {
     servo = new Servo(0);
     servoAngle=getLastCommandedServoAngle();
+    lastTime=Timer.getFPGATimestamp();
+
     this.targetCam = new PhotonCamera("target");
     var camList = new ArrayList<Pair<PhotonCamera, Transform3d>>();
     camList.add(new Pair<PhotonCamera, Transform3d>(targetCam, Constants.Vision.robotToCam));
     this.robotPoseEstimator=new RobotPoseEstimator(Constants.Vision.atfl, PoseStrategy.CLOSEST_TO_REFERENCE_POSE, camList);
   }
+
+  //Servo Functions
   public void setServoAngle(double angle){servo.setAngle(angle);}
   public double getLastCommandedServoAngle(){return servo.getAngle();}
   public double getServoAngle(){return this.servoAngle;}
 
+  //Cam Functions
   public boolean isConnected(){
     return targetCam.isConnected();
   }
@@ -54,7 +62,6 @@ public class Vision extends SubsystemBase {
   }
   public Pair<Pose2d, Double> getEstimatedGlobalPose(Pose2d prevEstimatedRobotPose) {
     robotPoseEstimator.setReferencePose(prevEstimatedRobotPose);
-
     double currentTime = Timer.getFPGATimestamp();
     Optional<Pair<Pose3d, Double>> result = robotPoseEstimator.update();
     if (result.isPresent()) {
@@ -67,11 +74,18 @@ public class Vision extends SubsystemBase {
   @Override
   public void periodic() {
     //Servo Code
+    double deltaTime=Timer.getFPGATimestamp()-lastTime;
+    lastTime=Timer.getFPGATimestamp();
+
     int servoDirection=getLastCommandedServoAngle()>servoAngle?1:-1;
-    int tolerance=1;
-    if(Math.abs(servoAngle-getLastCommandedServoAngle())>tolerance){
-      servoAngle+=servoDirection*Constants.Vision.SERVO_SPEED*0.02;//direction*speed*time
-    }
+    double deltaAngle=servoDirection*Constants.Vision.SERVO_SPEED*deltaTime;//direction*speed*time
+
+    if((servoDirection>0 && servoAngle+deltaAngle>getLastCommandedServoAngle())
+     ||(servoDirection<0 && servoAngle+deltaAngle<getLastCommandedServoAngle()))
+      servoAngle=getLastCommandedServoAngle();
+    else
+      servoAngle+=deltaAngle;
+    
     SmartDashboard.putNumber("Servo/CalculatedAngle", servoAngle);
   }
 }
