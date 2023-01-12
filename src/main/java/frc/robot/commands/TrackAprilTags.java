@@ -9,6 +9,7 @@ import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.Pair;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import frc.robot.Constants;
 import frc.robot.Constants.Drivetrain;
@@ -43,17 +44,19 @@ public class TrackAprilTags extends CommandBase {
     boolean isAprilTagInView = vision.isConnected()&&vision.hasTargets();//replace with method from vision that checks if there are apriltags in view
     if(isAprilTagInView){
       //follow april tag
-      Pair<Pose2d, Double> results = vision.getEstimatedGlobalPose(swerveSubsystem.getPose());
-      double aprilTagAngleInFrame=results.getFirst().getRotation().getDegrees();//replace with method from vision that returns the angle of the tag within view of the camera
+      Pair<Pose2d, Double> visionResult = vision.getEstimatedGlobalPose(swerveSubsystem.getPose());
+      double aprilTagAngleInFrame=visionResult.getFirst().getRotation().getDegrees();//replace with method from vision that returns the angle of the tag within view of the camera
       vision.setServoAngle((vision.getServoAngle()-aprilTagAngleInFrame)%180);
-
+      swerveSubsystem.updateVisionMeasurement(visionResult.getFirst(), visionResult.getSecond());
     }else{
       wander();
     }
   }
   public void wander(){
-    if(timer.get()>Constants.Vision.SERVO_SPEED*180){
+    if(timer.get()>180/Constants.Vision.SERVO_SPEED){
       vision.setServoAngle(MathUtil.applyDeadband(vision.getServoAngle()-180,1)==0?0:180);
+      // vision.setServoAngle(0);
+      SmartDashboard.putNumber("servoAngle", 0);
       timer.reset();
       timer.start();
     }

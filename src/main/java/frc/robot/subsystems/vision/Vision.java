@@ -23,27 +23,29 @@ import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.Servo;
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.Constants.FieldConstants;
+import frc.robot.subsystems.drive.SwerveSubsystem;
 
 public class Vision extends SubsystemBase {
   private final Servo servo;
   private PhotonCamera targetCam;
   private RobotPoseEstimator robotPoseEstimator;
+  private double servoAngle;
   public Vision() {
     servo = new Servo(0);
+    servoAngle=getLastCommandedServoAngle();
     this.targetCam = new PhotonCamera("target");
     var camList = new ArrayList<Pair<PhotonCamera, Transform3d>>();
     camList.add(new Pair<PhotonCamera, Transform3d>(targetCam, Constants.Vision.robotToCam));
     this.robotPoseEstimator=new RobotPoseEstimator(Constants.Vision.atfl, PoseStrategy.CLOSEST_TO_REFERENCE_POSE, camList);
   }
-  public double getServoAngle(){
-    return servo.getAngle();
-  }
-  public void setServoAngle(double angle){
-    servo.setAngle(angle);
-  }
+  public void setServoAngle(double angle){servo.setAngle(angle);}
+  public double getLastCommandedServoAngle(){return servo.getAngle();}
+  public double getServoAngle(){return this.servoAngle;}
+
   public boolean isConnected(){
     return targetCam.isConnected();
   }
@@ -64,5 +66,12 @@ public class Vision extends SubsystemBase {
 
   @Override
   public void periodic() {
+    //Servo Code
+    int servoDirection=getLastCommandedServoAngle()>servoAngle?1:-1;
+    int tolerance=1;
+    if(Math.abs(servoAngle-getLastCommandedServoAngle())>tolerance){
+      servoAngle+=servoDirection*Constants.Vision.SERVO_SPEED*0.02;//direction*speed*time
+    }
+    SmartDashboard.putNumber("Servo/CalculatedAngle", servoAngle);
   }
 }
