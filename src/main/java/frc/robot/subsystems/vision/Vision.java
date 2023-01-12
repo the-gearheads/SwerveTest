@@ -18,7 +18,9 @@ import edu.wpi.first.math.Pair;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
+import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.Servo;
@@ -43,9 +45,7 @@ public class Vision extends SubsystemBase {
     lastTime=Timer.getFPGATimestamp();
 
     this.targetCam = new PhotonCamera("target");
-    var camList = new ArrayList<Pair<PhotonCamera, Transform3d>>();
-    camList.add(new Pair<PhotonCamera, Transform3d>(targetCam, Constants.Vision.robotToCam));
-    this.robotPoseEstimator=new RobotPoseEstimator(Constants.Vision.atfl, PoseStrategy.CLOSEST_TO_REFERENCE_POSE, camList);
+    updateCamAngle();
   }
 
   //Servo Functions
@@ -60,7 +60,8 @@ public class Vision extends SubsystemBase {
   public boolean hasTargets(){
     return targetCam.getLatestResult().hasTargets();
   }
-  public Pair<Pose2d, Double> getEstimatedGlobalPose(Pose2d prevEstimatedRobotPose) {
+  //Currently getEstimatedGlobalPos is not used; instead, getEstimatedGlobalPosFromRotatingCam is used. 
+  private Pair<Pose2d, Double> getEstimatedGlobalPos(Pose2d prevEstimatedRobotPose) {
     robotPoseEstimator.setReferencePose(prevEstimatedRobotPose);
     double currentTime = Timer.getFPGATimestamp();
     Optional<Pair<Pose3d, Double>> result = robotPoseEstimator.update();
@@ -69,7 +70,21 @@ public class Vision extends SubsystemBase {
     } else {
         return new Pair<Pose2d, Double>(null, 0.0);
     }
-}
+  }
+  private void updateCamAngle(){
+    Translation3d camTrans=Constants.Vision.robotToCam.getTranslation();
+    Rotation3d servoAngleRot3d = new Rotation3d(0,0,servoAngle);
+    Rotation3d camRot = Constants.Vision.robotToCam.getRotation().rotateBy(servoAngleRot3d);
+    Transform3d robotToCam= new Transform3d(camTrans, camRot);
+
+    var camList = new ArrayList<Pair<PhotonCamera, Transform3d>>();
+    camList.add(new Pair<PhotonCamera, Transform3d>(targetCam, robotToCam));
+    this.robotPoseEstimator=new RobotPoseEstimator(Constants.Vision.atfl, PoseStrategy.CLOSEST_TO_REFERENCE_POSE, camList);
+  }
+  public Pair<Pose2d, Double> getEstimatedGlobalPosFromRotatingCam(Pose2d prevEstimatedRobotPose) {
+    updateCamAngle();
+    return getEstimatedGlobalPos(prevEstimatedRobotPose);
+  }
 
   @Override
   public void periodic() {

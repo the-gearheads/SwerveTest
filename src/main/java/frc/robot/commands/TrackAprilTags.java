@@ -37,17 +37,22 @@ public class TrackAprilTags extends CommandBase {
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
-    boolean isAprilTagInView = vision.isConnected()&&vision.hasTargets();//replace with method from vision that checks if there are apriltags in view
+    boolean isAprilTagInView = vision.isConnected()&&vision.hasTargets();
     if(isAprilTagInView){
-      //follow april tag
-      Pair<Pose2d, Double> visionResult = vision.getEstimatedGlobalPose(swerveSubsystem.getPose());
-      double aprilTagAngleInFrame=visionResult.getFirst().getRotation().getDegrees();//replace with method from vision that returns the angle of the tag within view of the camera
-      vision.setServoAngle((vision.getServoAngle()-aprilTagAngleInFrame)%180);
+      //update swerve pos estimator
+      Pair<Pose2d, Double> visionResult = vision.getEstimatedGlobalPosFromRotatingCam(swerveSubsystem.getPose());
       swerveSubsystem.updateVisionMeasurement(visionResult.getFirst(), visionResult.getSecond());
+
+      //follow april tag
+      double aprilTagAngleInFrame=visionResult.getFirst().getRotation().getDegrees();
+      double desiredServoAngle = vision.getServoAngle()-aprilTagAngleInFrame;
+      desiredServoAngle=MathUtil.clamp(desiredServoAngle, 0, 180);
+      vision.setServoAngle(desiredServoAngle);
     }else{
       wander();
     }
   }
+
   public void wander(){
     if(Math.abs(vision.getLastCommandedServoAngle()-vision.getServoAngle()) < 1e-1){
       double nextCommmandedAngle=MathUtil.applyDeadband(vision.getLastCommandedServoAngle(),1e-1)==180?0:180;
@@ -55,6 +60,7 @@ public class TrackAprilTags extends CommandBase {
     }
     SmartDashboard.putNumber("servoAngle", vision.getServoAngle());
   }
+
   // Called once the command ends or is interrupted.
   @Override
   public void end(boolean interrupted) {}
