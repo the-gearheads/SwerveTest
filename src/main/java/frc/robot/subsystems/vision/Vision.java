@@ -38,6 +38,7 @@ public class Vision extends SubsystemBase {
   private final Servo servo;
   private double servoAngle;
   private double lastTime;
+  private double desiredServoAngle;
 
   public Vision() {
     servo = new Servo(0);
@@ -49,7 +50,10 @@ public class Vision extends SubsystemBase {
   }
 
   //Servo Functions
-  public void setServoAngle(double angle){servo.setAngle(angle);}
+  public void setServoAngle(double angle){
+    // this.desiredServoAngle=angle;
+    servo.setAngle(angle);}
+  // }
   public double getLastCommandedServoAngle(){return servo.getAngle();}
   public double getServoAngle(){return this.servoAngle;}
 
@@ -88,6 +92,7 @@ public class Vision extends SubsystemBase {
 
   @Override
   public void periodic() {
+
     //Servo Code
     double deltaTime=Timer.getFPGATimestamp()-lastTime;
     lastTime=Timer.getFPGATimestamp();

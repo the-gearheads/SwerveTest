@@ -22,6 +22,9 @@ public class TrackAprilTags extends CommandBase {
   private Vision vision;
   @SuppressWarnings("all")
   private SwerveSubsystem swerveSubsystem;
+  private double servoSpeed = 180/12;
+  private double servoDirection = 1;
+
   public TrackAprilTags(Vision vision, SwerveSubsystem swerveSubsystem) {
     this.vision=vision;
     this.swerveSubsystem=swerveSubsystem;
@@ -54,10 +57,22 @@ public class TrackAprilTags extends CommandBase {
   }
 
   public void wander(){
-    if(Math.abs(vision.getLastCommandedServoAngle()-vision.getServoAngle()) < 1e-1){
-      double nextCommmandedAngle=MathUtil.applyDeadband(vision.getLastCommandedServoAngle(),1e-1)==180?0:180;
-      vision.setServoAngle(nextCommmandedAngle);
+    double servoDeltaPos = servoDirection * servoSpeed * 0.02;
+    double newServoPos;
+    if(servoDirection > 0 && vision.getLastCommandedServoAngle()+servoDeltaPos > 180){
+      servoDirection = -1;
+      newServoPos = 180;
+    }else if(servoDirection<0 && vision.getLastCommandedServoAngle()+servoDeltaPos<0){
+      servoDirection = 1;
+      newServoPos=0;
+    }else{
+      newServoPos=vision.getLastCommandedServoAngle()+servoDeltaPos;
     }
+    vision.setServoAngle(newServoPos);
+    // if(Math.abs(vision.getLastCommandedServoAngle()-vision.getServoAngle()) < 1e-1){
+    //   double nextCommmandedAngle=MathUtil.applyDeadband(vision.getLastCommandedServoAngle()-180,1e-1)==0?0:180;
+    //   vision.setServoAngle(nextCommmandedAngle);
+    // }
   }
 
   // Called once the command ends or is interrupted.

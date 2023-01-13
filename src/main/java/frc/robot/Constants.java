@@ -10,14 +10,18 @@ import com.pathplanner.lib.PathConstraints;
 
 import edu.wpi.first.apriltag.AprilTag;
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.system.plant.DCMotor;
+import edu.wpi.first.math.util.Units;
 import frc.robot.annotations.*;
 
 /**
@@ -127,10 +131,10 @@ public static boolean simReplayMode = false;
   public static class Vision{
     public static double SERVO_SPEED=180/0.6;//in deg/sec
     public static double SERVO_OFFSET=0;
-    public static Transform3d robotToCam;
-    final static AprilTag tag18 = new AprilTag(18,new Pose3d(new Pose2d(FieldConstants.length,FieldConstants.width / 2.0,Rotation2d.fromDegrees(180))));
+    public static Transform3d robotToCam = new Transform3d(new Translation3d(Units.inchesToMeters(20.625), Units.inchesToMeters(0.5), Units.inchesToMeters(20)), new Rotation3d());
+    final static AprilTag tag02 = new AprilTag(02,new Pose3d(new Pose2d(FieldConstants.length,FieldConstants.width / 2.0,Rotation2d.fromDegrees(180))));
     final static AprilTag tag01 = new AprilTag(01,new Pose3d(new Pose2d(0.0, FieldConstants.width / 2.0, Rotation2d.fromDegrees(0.0))));
-    public static ArrayList<AprilTag> atList = new ArrayList<AprilTag>(){{add(tag18);add(tag01);}};
+    public static ArrayList<AprilTag> atList = new ArrayList<AprilTag>(){{add(tag02);add(tag01);}};
     public static AprilTagFieldLayout atfl = new AprilTagFieldLayout(atList, FieldConstants.length, FieldConstants.width);
   }
   public static class Controllers {
