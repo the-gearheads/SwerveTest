@@ -130,7 +130,8 @@ public static boolean simReplayMode = false;
     }
   }
   public static class Vision{
-    public static double SERVO_SPEED=180/0.6;//in deg/sec
+    public static double MAX_SERVO_SPEED=180/0.6;//in deg/sec
+    public static double SERVO_SPEED=180/12.0;
     public static double SERVO_OFFSET=0;
     public static Transform3d robotToCam = new Transform3d(new Translation3d(Units.inchesToMeters(20.625), Units.inchesToMeters(0.5), Units.inchesToMeters(20)), new Rotation3d());
     final static AprilTag tag02 = new AprilTag(02,new Pose3d(0,0,Units.inchesToMeters(15),new Rotation3d()));

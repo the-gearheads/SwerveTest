@@ -41,7 +41,7 @@ public class VisionServoDebug extends CommandBase {
         ? desiredRobotRelativeAngle % 360 + 360
         : desiredRobotRelativeAngle % 360;
     if (desiredRobotRelativeAngleMod360 <= 180) {
-      vision.setServoAngle(desiredRobotRelativeAngleMod360);
+      // vision.setCurrentAngle(desiredRobotRelativeAngleMod360);
     }
 
     // debug telemetry

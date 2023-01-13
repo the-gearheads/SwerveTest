@@ -15,18 +15,19 @@ import frc.robot.Constants;
 import frc.robot.Constants.Drivetrain;
 import frc.robot.subsystems.drive.SwerveSubsystem;
 import frc.robot.subsystems.drive.motors.DriveMotor;
+import frc.robot.subsystems.vision.CamServo;
 import frc.robot.subsystems.vision.Vision;
 
 public class TrackAprilTags extends CommandBase {
   /** Creates a new TrackAprilTags. */
   private Vision vision;
+  private CamServo camServo;
   @SuppressWarnings("all")
   private SwerveSubsystem swerveSubsystem;
-  private double servoSpeed = 180/12;
-  private double servoDirection = 1;
 
-  public TrackAprilTags(Vision vision, SwerveSubsystem swerveSubsystem) {
+  public TrackAprilTags(Vision vision, CamServo camServo, SwerveSubsystem swerveSubsystem) {
     this.vision=vision;
+    this.camServo=camServo;
     this.swerveSubsystem=swerveSubsystem;
     addRequirements(vision);
     // Use addRequirements() here to declare subsystem dependencies.
@@ -43,37 +44,22 @@ public class TrackAprilTags extends CommandBase {
     boolean isAprilTagInView = vision.isConnected()&&vision.hasTargets();
     if(isAprilTagInView){
       //update swerve pos estimator
-      Pair<Pose2d, Double> visionResult = vision.getEstimatedGlobalPosFromRotatingCam(swerveSubsystem.getPose());
+      Pair<Pose2d, Double> visionResult = vision.getEstimatedGlobalPosFromRotatingCam(swerveSubsystem.getPose(), camServo.getCurrentAngle());
       swerveSubsystem.updateVisionMeasurement(visionResult.getFirst(), visionResult.getSecond());
 
       //follow april tag
       double aprilTagAngleInFrame=visionResult.getFirst().getRotation().getDegrees();
-      double desiredServoAngle = vision.getServoAngle()-aprilTagAngleInFrame;
+      double desiredServoAngle = camServo.getCurrentAngle()-aprilTagAngleInFrame;
       desiredServoAngle=MathUtil.clamp(desiredServoAngle, 0, 180);
-      // vision.setServoAngle(desiredServoAngle);
-      // vision.setServoAngle(vision.getServoAngle());
-      // vision.servo.setDisabled();
     }else{
-      // wander();
+      wander();
     }
   }
 
   public void wander(){
-    // double servoDeltaPos = servoDirection * servoSpeed * 0.02;
-    // double newServoPos;
-    // if(servoDirection > 0 && vision.getLastCommandedServoAngle()+servoDeltaPos > 180){
-    //   servoDirection = -1;
-    //   newServoPos = 180;
-    // }else if(servoDirection<0 && vision.getLastCommandedServoAngle()+servoDeltaPos<0){
-    //   servoDirection = 1;
-    //   newServoPos=0;
-    // }else{
-    //   newServoPos=vision.getLastCommandedServoAngle()+servoDeltaPos;
-    // }
-    // vision.setServoAngle(newServoPos);
-    if(Math.abs(vision.getLastCommandedServoAngle()-vision.getServoAngle()) < 1e-1){
-      double nextCommmandedAngle=MathUtil.applyDeadband(vision.getLastCommandedServoAngle()-180,1e-1)==0?0:180;
-      vision.setServoAngle(nextCommmandedAngle);
+    if(Math.abs(camServo.getGoal()-camServo.getCurrentAngle()) < 1e-1){
+      double nextCommmandedAngle=MathUtil.applyDeadband(camServo.getGoal()-180,1e-1)==0?0:180;
+      camServo.setGoal(nextCommmandedAngle);
     }
   }
 

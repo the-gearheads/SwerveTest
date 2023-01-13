@@ -4,7 +4,6 @@
 
 package frc.robot.subsystems.vision;
 
-import java.sql.Driver;
 import java.util.ArrayList;
 import java.util.Optional;
 
@@ -28,31 +27,11 @@ public class Vision extends SubsystemBase {
   private PhotonCamera targetCam;
   private RobotPoseEstimator robotPoseEstimator;
 
-  public final Servo servo;
-  private double servoAngle;
-  private double lastTime;
-  private double desiredAngle;
-
   public Vision() {
-    servo = new Servo(0);
-    servoAngle=getLastCommandedServoAngle();
-    desiredAngle=servoAngle;
-    lastTime=Timer.getFPGATimestamp();
 
     this.targetCam = new PhotonCamera("target");
-    updateCamAngle();
+    updateCamAngle(0);
   }
-
-  //Servo Functions
-  public void setServoAngle(double angle){
-    //servo.setAngle(angle);}
-    desiredAngle=angle;
-}
-  public double getLastCommandedServoAngle(){
-    return desiredAngle; 
-    //return servo.getAngle();
-  }
-  public double getServoAngle(){return this.servoAngle;}
 
   //Cam Functions
   public boolean isConnected(){
@@ -61,12 +40,16 @@ public class Vision extends SubsystemBase {
   public boolean hasTargets(){
     return targetCam.getLatestResult().hasTargets();
   }
-  //Currently getEstimatedGlobalPos is not used; instead, getEstimatedGlobalPosFromRotatingCam is used. 
-  private Pair<Pose2d, Double> getEstimatedGlobalPos(Pose2d prevEstimatedRobotPose) {
+  //Currently getEstimatedGlobalPosFromRotating CAM is not used; instead, getEstimatedGlobalPos is used. 
+  public Pair<Pose2d, Double> getEstimatedGlobalPosFromRotatingCam(Pose2d prevEstimatedRobotPose, double servoAngle) {
+    updateCamAngle(servoAngle);
+    return getEstimatedGlobalPos(prevEstimatedRobotPose);
+  }
+  public Pair<Pose2d, Double> getEstimatedGlobalPos(Pose2d prevEstimatedRobotPose) {
     robotPoseEstimator.setReferencePose(prevEstimatedRobotPose);
     double currentTime = Timer.getFPGATimestamp();
     Optional<Pair<Pose3d, Double>> result = robotPoseEstimator.update();
-    if (result.isPresent() && result.get().getFirst()!=null&& result.get().getFirst().getRotation()!=null) {
+    if (result.isPresent() && result.get().getFirst()!=null&&result.get().getFirst().getRotation()!=null) {//the 2nd and 3rd conditions avoid nullpointer exceptions. 
       SmartDashboard.putBoolean("Vision/ResultPresent", true);
         return new Pair<Pose2d, Double>(result.get().getFirst().toPose2d(), currentTime - result.get().getSecond());
     } else {
@@ -74,10 +57,9 @@ public class Vision extends SubsystemBase {
         return new Pair<Pose2d, Double>(prevEstimatedRobotPose, 0.0);
     }
   }
-  private void updateCamAngle(){
+  private void updateCamAngle(double servoAngle){
     Translation3d camTrans=Constants.Vision.robotToCam.getTranslation();
-    // Rotation3d servoAngleRot3d = new Rotation3d(0,0,servoAngle);
-    Rotation3d servoAngleRot3d = new Rotation3d(0,0,0);
+    Rotation3d servoAngleRot3d = new Rotation3d(0,0,servoAngle);
     Rotation3d camRot = Constants.Vision.robotToCam.getRotation().rotateBy(servoAngleRot3d);
     Transform3d robotToCam= new Transform3d(camTrans, camRot);
 
@@ -85,51 +67,8 @@ public class Vision extends SubsystemBase {
     camList.add(new Pair<PhotonCamera, Transform3d>(targetCam, robotToCam));
     this.robotPoseEstimator=new RobotPoseEstimator(Constants.Vision.atfl, PoseStrategy.CLOSEST_TO_REFERENCE_POSE, camList);
   }
-  public Pair<Pose2d, Double> getEstimatedGlobalPosFromRotatingCam(Pose2d prevEstimatedRobotPose) {
-    // updateCamAngle();
-    return getEstimatedGlobalPos(prevEstimatedRobotPose);
-  }
 
   @Override
   public void periodic() {
-    double direction = desiredAngle-servoAngle;
-    direction/=(Math.abs(servoAngle-desiredAngle)+1e-5);
-    double servoSpeed = 180/12.0;
-    double deltaAngle1=direction*servoSpeed*0.02;
-    double newAngle=servoAngle+deltaAngle1;
-    if(newAngle > 180){
-      newAngle = 180;
-    }else if(newAngle<0){
-      newAngle=0;
-    }
-    SmartDashboard.putNumber("Vision/Problem", newAngle);
-    servo.setAngle(newAngle);
-
-    //Servo Code
-    // double deltaTime=Timer.getFPGATimestamp()-lastTime;
-    // lastTime=Timer.getFPGATimestamp();
-
-    // int servoDirection=getLastCommandedServoAngle()>servoAngle?1:-1;
-    // double deltaAngle=servoDirection*Constants.Vision.SERVO_SPEED*deltaTime;//direction*speed*time
-
-    // if((servoDirection>0 && servoAngle+deltaAngle>getLastCommandedServoAngle())
-    //  ||(servoDirection<0 && servoAngle+deltaAngle<getLastCommandedServoAngle()))
-    //   servoAngle=getLastCommandedServoAngle();
-    // else
-    //   servoAngle+=deltaAngle;
-    double deltaTime=Timer.getFPGATimestamp()-lastTime;
-    lastTime=Timer.getFPGATimestamp();
-
-    int servoDirection=newAngle>servoAngle?1:-1;
-    double deltaAngle=servoDirection*Constants.Vision.SERVO_SPEED*deltaTime;//direction*speed*time
-
-    if((servoDirection>0 && servoAngle+deltaAngle>newAngle)
-     ||(servoDirection<0 && servoAngle+deltaAngle<newAngle))
-      servoAngle=newAngle;
-    else
-      servoAngle+=deltaAngle;
-    
-    SmartDashboard.putNumber("Vision/lastCommandedServoAngle", getLastCommandedServoAngle());
-    SmartDashboard.putNumber("Vision/servoAngle", servoAngle);
   }
 }
