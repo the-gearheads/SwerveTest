@@ -6,7 +6,7 @@ import frc.robot.Constants;
 
 public class SingleXboxController implements ControllerInterface {
 
-  XboxController controller;
+  public XboxController controller;
 
   public SingleXboxController(int port) {
     controller = new XboxController(port);
@@ -27,5 +27,7 @@ public class SingleXboxController implements ControllerInterface {
   public double getRotateAxis() {
     return -deadband(controller.getRightX());
   }
-
+  public XboxController getController(){
+    return controller;
+  }
 }

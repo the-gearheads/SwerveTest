@@ -21,6 +21,7 @@ import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.util.sendable.Sendable;
 import edu.wpi.first.wpilibj.SPI;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
@@ -51,7 +52,7 @@ public class SwerveSubsystem extends SubsystemBase {
     /* Get module states to pass to odometry */
     updateInputs();
     var states = getPositionsFromInputs(lastInputs);
-    odometry = new SwerveDrivePoseEstimator(kinematics, gyro.getRotation2d(), states, new Pose2d());
+    odometry = new SwerveDrivePoseEstimator(kinematics, gyro.getRotation2d(), states, new Pose2d(Units.inchesToMeters(60),0,new Rotation2d(180)));
 
     zeroEncoders();
 

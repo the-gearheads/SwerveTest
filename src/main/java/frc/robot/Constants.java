@@ -54,6 +54,7 @@ public static boolean simReplayMode = false;
     }
   }
   public static class Drivetrain {
+    public static Pose2d startPos = new Pose2d(Units.inchesToMeters(60),0,new Rotation2d(180));
     public static int FL_DRIVE_ID = 27;
     public static int FL_STEER_ID = 34;
     public static int FR_DRIVE_ID = 15;
@@ -103,7 +104,7 @@ public static boolean simReplayMode = false;
     public static Rotation2d RR_OFFSET = Rotation2d.fromDegrees((684.5+554+367)%360);
 
     @NTPublish
-    public static double MAX_LIN_VEL = 2;//set to 2
+    public static double MAX_LIN_VEL = 0.5;//set to 2
     @NTPublish
     public static double MAX_ROT_VEL = 1;
 
@@ -132,7 +133,7 @@ public static boolean simReplayMode = false;
     public static double SERVO_SPEED=180/0.6;//in deg/sec
     public static double SERVO_OFFSET=0;
     public static Transform3d robotToCam = new Transform3d(new Translation3d(Units.inchesToMeters(20.625), Units.inchesToMeters(0.5), Units.inchesToMeters(20)), new Rotation3d());
-    final static AprilTag tag02 = new AprilTag(02,new Pose3d(new Pose2d(FieldConstants.length,FieldConstants.width / 2.0,Rotation2d.fromDegrees(180))));
+    final static AprilTag tag02 = new AprilTag(02,new Pose3d(0,0,Units.inchesToMeters(15),new Rotation3d()));
     final static AprilTag tag01 = new AprilTag(01,new Pose3d(new Pose2d(0.0, FieldConstants.width / 2.0, Rotation2d.fromDegrees(0.0))));
     public static ArrayList<AprilTag> atList = new ArrayList<AprilTag>(){{add(tag02);add(tag01);}};
     public static AprilTagFieldLayout atfl = new AprilTagFieldLayout(atList, FieldConstants.length, FieldConstants.width);

@@ -6,8 +6,10 @@ package frc.robot;
 
 import java.util.ArrayList;
 
+import com.pathplanner.lib.PathConstraints;
 import com.pathplanner.lib.PathPlanner;
 import com.pathplanner.lib.PathPlannerTrajectory;
+import com.pathplanner.lib.PathPoint;
 
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.XboxController;
@@ -26,6 +28,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.RepeatCommand;
+import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 
 /**
  * This class is where the bulk of the robot should be declared. Since Command-based is a
@@ -91,6 +94,13 @@ public class RobotContainer {
     Controllers.updateActiveControllerInstance();
 
     // Put new bindings here. 
+    new JoystickButton(Controllers.activeController.getController(), 1).onTrue(new InstantCommand(()->{
+      PathPlannerTrajectory traj1 = PathPlanner.generatePath(new PathConstraints(1, 0.5), 
+                                                              new PathPoint(swerveSubsystem.getPose().getTranslation(), swerveSubsystem.getPose().getRotation()), // position, heading
+                                                              new PathPoint(Constants.Drivetrain.startPos.getTranslation(), Constants.Drivetrain.startPos.getRotation()) // position, heading
+                                                              );
+      swerveSubsystem.followTrajectoryCommand(traj1, true, true).schedule();
+    }));
   }
   /**
    * Use this to pass the autonomous command to the main {@link Robot} class.
